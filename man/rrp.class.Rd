@@ -1,6 +1,6 @@
 \name{rrp.class}
 \alias{rrp.class}
-\title{Nonparametric nearest neighbor classification unsing RRP dissimilarity}
+\title{Nonparametric nearest neighbor classification using RRP dissimilarity}
 \description{
 This method is a simple nearest neighbor based on the RRP dissimilarity matrix.
 It can be used also as a supervised method, i.e. using the class variable

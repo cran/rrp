@@ -2,7 +2,7 @@
 \alias{rrp.dist}
 \title{RRP dissimilarity matrix}
 \description{
-Main piece of the RRP lagorithm which generates the RRP dissimilarity
+Main piece of the RRP algorithm which generates the RRP dissimilarity
 matrix.
 }
 \usage{

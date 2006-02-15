@@ -6,11 +6,12 @@ This function performs a simple nearest neighbor hot-deck imputation method
 using  the RRP dissimilarity matrix.
 }
 \usage{
-rrp.impute(data, k = 1, msplit = 10, Rep = 250, cut.in = 15)
+rrp.impute(data, D = NULL, k = 1, msplit = 10, Rep = 250, cut.in = 15)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{data}{a \code{data.frame} containing missing data on some covariates}
+  \item{D}{\code{NULL} or a dist object with attribute method = `RRP'}
   \item{k}{number of nearest neighbors to use}
   \item{msplit}{minimum split parameter in the \code{rpart} algorithm}
   \item{Rep}{number of RRP replications}
@@ -21,12 +22,15 @@ If missing data are on a continuous covariate, the missing value is imputed
 as the average of the covariate values of the nearest neighbors, otherwise
 the majority of the `votes' determines the class of the missing observation
 on the basis of nearest available data.
+
+If \code{D} is \code{NULL} a RRP-dissimilarity matrix is created.
 }
 \value{
 A list
   \item{new.data}{a copy of the data \code{data} with missing data imputed}
   \item{dist}{an object of class \code{dist} which is a copy of the RRP 
-  dissimilarity matrix generated and used to search for nearest neighbors}
+  dissimilarity matrix generated or passed in input and used to search 
+  for nearest neighbors}
 }
 \references{
 Iacus, S.M., Porro, G. (2006) Random Recursive Partitioning and 

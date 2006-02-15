@@ -1,5 +1,5 @@
-"rrp.class" <-
-function(x, cl, train, test, k=1){
+"rrp.predict" <-
+function(x, y, train, test, k=1){
 
  if(class(x) == "dist"){
   if(attr(x,"method") != "RRP")
@@ -12,26 +12,15 @@ function(x, cl, train, test, k=1){
   stop("Wrong dimensions")
 
  M <- as.matrix(x)
- if(!is.factor(cl))
-  cl <- factor(cl)
+ if(!is.numeric(y))
+  stop("`y' must be numeric")
 
- pred <- factor(rep(NA,length(test)), levels=levels(cl))
+ pred <- as.numeric(rep(NA,length(test)))
  
  for(i in 1:length(test)){
   tmp <- as.integer(order(M[test[i],train]))
   tmp <- tmp[1:min(k,length(tmp))]
-
-  if(length(tmp)>1){
-   votes <- table(cl[tmp])
-   idx <- which(votes == max(votes))   
-   if(length(idx)>1)
-     idx <- sample(idx,1)
-	 
-    pred.cl <- names(votes)[idx]
-    pred[i] <- pred.cl
-  } else {
-    pred[i] <- cl[tmp]
-  }  
+  pred[i] <- weighted.mean(y[tmp], w=1-M[test[i],train[tmp]], na.rm=TRUE)
  }
  return(pred)
 }

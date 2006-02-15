@@ -1,13 +1,14 @@
 "rrp.impute" <-
-function(data, k=1,  msplit=10, Rep=250, cut.in=15){
+function(data, D = NULL, k=1,  msplit=10, Rep=250, cut.in=15){
 
  n <- dim(data)[1]
- k <- dim(data)[2]
  all <- 1:n
- 
- D <- rrp.dist(data,  msplit=msplit, Rep=Rep,cut.in=cut.in, check.bal=FALSE, 
- plot=FALSE)
- 
+ if(is.null(D) | (class(D) != "dist"))
+	D <- rrp.dist(data,  msplit=msplit, Rep=Rep,cut.in=cut.in, check.bal=FALSE, 
+		plot=FALSE)
+ if(attr(D,"method") != "RRP")
+	stop("`dist' object `D' must have attribute `method' = `RRP'")
+	
  miss.obs <- which(apply(data, 1, function(x) length(which(is.na(x)))>0 ) == TRUE)
  
  D[which(D==1)] <- NA
@@ -17,7 +18,7 @@ function(data, k=1,  msplit=10, Rep=250, cut.in=15){
  comp.obs <- all[-miss.obs]
 
  for(i in 1:length(miss.obs)){
-  tmp <- as.integer(which(M[miss.obs[i], comp.obs] == min(M[miss.obs[i], comp.obs], na.rm=TRUE)))
+  tmp <- as.integer(order(M[miss.obs[i], comp.obs]))
   tmp <- tmp[1:min(k,length(tmp))]
 
   v.idx <- which(is.na(data[miss.obs[i],]))	
