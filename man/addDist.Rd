@@ -13,8 +13,9 @@ addDist(d, x, k)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{d}{a dist object, upper diagonal, representing a symmetric matrix}
-  \item{x}{a vector of indices}
-  \item{k}{the constant to add}
+  \item{x}{a list of vectors of indices}
+  \item{k}{a vector of constants to add, arguments are eventually recycled 
+  silently}
 }
 \value{
   returns the modified dist object
@@ -22,15 +23,15 @@ addDist(d, x, k)
 \author{Stefano M. Iacus}
 \seealso{\code{\link{dist}}}
 \examples{
-M <- matrix(1:100,5,20)
-M <- M %*% t(M)
+M <- matrix(0,5,5)
 d <- as.dist(M)
-x <- 1:3
+x <- list(1:3, 4:5)
 
-addDist(d,x,-80000)
-d
+addDist(d,x,c(-1,+1))
+
 # which is the equivalent of (apart for the diagonal elements)
-M[x,x] <- M[x,x] - 80000
+M[1:3,1:3] <- M[1:3,1:3] - 1
+M[4:5,4:5] <- M[4:5,4:5] + 1
 
 # Indeed, we have
 d

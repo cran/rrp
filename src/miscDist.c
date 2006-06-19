@@ -35,105 +35,108 @@
 #include <R_ext/Complex.h>
 
 
-/* IFS estimators */      
-SEXP addDist(SEXP d, SEXP x, SEXP k, SEXP n);
-SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n);
+/* dist object manipulation */      
+SEXP addDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho);
+SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho);
 
 
-/* addDist:
+/* addDist/setDist:
    ------
    
    parameters:
    -----------
    
    d   : the pointer to the vector containing elements of the dist object
-   x   : the vector of indexes to change in the original matrix
-   k   : the constant to add vector-wise
+   x   : a list of indexes to change in the original matrix
+   k   : a vector of constants to add vector-wise
    n   : the dimension of the dist object
 */
 
 
 
-SEXP addDist(SEXP d, SEXP x, SEXP k, SEXP n)
+SEXP addDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho)
 {
-	int i, j, pos;
+	int i, j, h, pos;
 	double *dObj, *kappa;
 	int dSize, xSize;
 	int *nSize, *xIdx;
+	int n2,n1;
 	
 	if(!isNumeric(d)) error("`d' must be numeric");
-	if(!isInteger(x)) error("`x' must be an integer");
 	if(!isNumeric(k)) error("`k' must be numeric");
 	if(!isInteger(n)) error("`n' must be an integer");
 	
 	PROTECT(d = AS_NUMERIC(d));
-	PROTECT(x = AS_INTEGER(x));
+	PROTECT(x = AS_LIST(x));
 	PROTECT(k = AS_NUMERIC(k));
 	PROTECT(n = AS_INTEGER(n));
 	
 	dSize = LENGTH(d); 
-	xSize = LENGTH(x);
+    n2 = length(eval(x, rho));
+    if (n2 == NA_INTEGER)
+     error("error");
 	
-	xIdx = INTEGER_POINTER(x);
 	dObj = NUMERIC_POINTER(d);
 	nSize = INTEGER_POINTER(n);
 	kappa = NUMERIC_POINTER(k);
-	
-	for(i=0; i< xSize; i++)
-		if(xIdx[i] > *nSize)
-			error("subscript out of bounds in `x'");
-	
-	for(i=0; i< xSize-1; i++)
-		for(j=i+1; j<xSize; j++){
-			pos = (xIdx[i]-1)*(2*(*nSize)-xIdx[i])/2 + xIdx[j]-xIdx[i];
-			REAL(d)[pos-1] = dObj[pos-1] + *kappa;
-		}
-			UNPROTECT(4);
-	return(d);
+
+	for(h=0; h<n2; h++){
+     n1 = LENGTH(VECTOR_ELT(x,h));
+	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
+	 for(i=0; i<n1-1; i++){
+	  for(j=i+1; j<n1; j++){
+	   pos = (xIdx[i]-1)*(2*(*nSize)-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   REAL(d)[pos-1] = dObj[pos-1] + kappa[h];
+	  }
+	 }
+	}
+	UNPROTECT(4);
+    return(d);
 }
 
-SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n)
+SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho)
 {
-	int i, j, pos;
-	double *dObj, *kappa;
+	int h, i, j, pos;
+	double  *kappa;
 	int dSize, xSize;
-	int *nSize, *xIdx;
+	int *nSize, *xIdx, n2, n1;
 	
 	if(!isNumeric(d)) error("`d' must be numeric");
-	if(!isInteger(x)) error("`x' must be an integer");
 	if(!isNumeric(k)) error("`k' must be numeric");
 	if(!isInteger(n)) error("`n' must be an integer");
 	
 	PROTECT(d = AS_NUMERIC(d));
-	PROTECT(x = AS_INTEGER(x));
+	PROTECT(x = AS_LIST(x));
 	PROTECT(k = AS_NUMERIC(k));
 	PROTECT(n = AS_INTEGER(n));
 	
 	dSize = LENGTH(d); 
-	xSize = LENGTH(x);
+    n2 = length(eval(x, rho));
+    if (n2 == NA_INTEGER)
 
 	xIdx = INTEGER_POINTER(x);
 	nSize = INTEGER_POINTER(n);
 	kappa = NUMERIC_POINTER(k);
-	
-	for(i=0; i< xSize; i++){
-		if(xIdx[i] > *nSize)
-			error("subscript out of bounds in `x'");
-	}	
+			  
+	for(h=0; h<n2; h++){
+     n1 = LENGTH(VECTOR_ELT(x,h));
+	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
+	 for(i=0; i<n1-1; i++){
+	  for(j=i+1; j<n1; j++){
+	   pos = (xIdx[i]-1)*(2*(*nSize)-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   REAL(d)[pos-1] = kappa[h];
+	  }
+	 }
+	}
 
-	for(i=0; i< xSize-1; i++)
-		for(j=i+1; j<xSize; j++){
-			pos = (xIdx[i]-1)*(2*(*nSize)-xIdx[i])/2 + xIdx[j]-xIdx[i];
-			REAL(d)[pos-1] = *kappa;
-		  }
 	UNPROTECT(4);
 	return(d);
 }
 
 
 static R_CMethodDef R_CDef[] = {
-   {"addDist", (DL_FUNC)&addDist, 4},
-   {"setDist", (DL_FUNC)&setDist, 4},
+   {"addDist", (DL_FUNC)&addDist, 5},
+   {"setDist", (DL_FUNC)&setDist, 5},
    {NULL, NULL, 0},
 };
 
