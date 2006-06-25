@@ -1,26 +1,23 @@
 "rrp.class" <-
 function(x, cl, train, test, k=1){
 
- if(class(x) == "dist"){
-  if(attr(x,"method") != "RRP")
-   stop("`x' must have attribute method = `RRP'")
- } else {
-   stop("`x' must be an object of class `dist'")
- }
+if( !any(class(x) == "XPtr") )  
+ stop("`x' must be a of class `XPtr'")
 
  if(attr(x, "Size") != (length(train)+length(test)))
   stop("Wrong dimensions")
 
- M <- as.matrix(x)
  if(!is.factor(cl))
   cl <- factor(cl)
 
  pred <- factor(rep(NA,length(test)), levels=levels(cl))
  
+ f <- function(x) {tmp <- order(x); tmp[1:min(k,length(tmp))]}
+ nn <- applyXPtr(x, test, train, f)
+ 
  for(i in 1:length(test)){
-  tmp <- as.integer(order(M[test[i],train]))
-  tmp <- tmp[1:min(k,length(tmp))]
-
+  tmp <- nn[[i]]
+ 
   if(length(tmp)>1){
    votes <- table(cl[tmp])
    idx <- which(votes == max(votes))   

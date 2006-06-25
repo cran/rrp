@@ -10,7 +10,6 @@ function(d, x, k)
  x <- lapply(x, sort)  
  n <- length(x)
  k <- rep(k,n)[1:n]
- return(invisible(.Call("addDist", d, x, 
-	as.numeric(k), as.integer(attr(d, "Size")), .GlobalEnv, PACKAGE = "rrp")))
+ return(invisible(.Call("addDist", d, x, as.numeric(k), PACKAGE = "rrp")))
 }
 

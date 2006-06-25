@@ -9,5 +9,5 @@ if(any(unlist(x)>attr(x,"Size")))
  stop("indexes in `x' behond the size of `d'")
  n <- length(x)
  k <- rep(k,n)[1:n]
- return(invisible(.Call("setDist", d, x, as.numeric(k), as.integer(attr(d,"Size")), .GlobalEnv, PACKAGE="rrp")))
+ return(invisible(.Call("setDist", d, x, as.numeric(k),  PACKAGE="rrp")))
 }

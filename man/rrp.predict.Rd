@@ -11,11 +11,16 @@ values to the test set.
 rrp.predict(x, y, train, test, k = 1)
 }
 \arguments{
-  \item{x}{a \code{dist} object with attribute \code{method} = \code{RRP}}
+  \item{x}{a \code{XPtr} object}
   \item{y}{numeric vector of train outcomes}
   \item{train}{the vecotr of indexes of the training set}
   \item{test}{the vector of training indexes of test set}
   \item{k}{number of nearest to consider}
+}
+\details{
+From version 1.6 of the package the RRP matrix is stored as an external pointer 
+to avoid duplications. This allow to work on bigger datasets.
+Hence this function no longer accepts \code{dist} objects.
 }
 \value{
 a vector of type \code{numeric} with predicted outcomes.

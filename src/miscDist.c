@@ -20,6 +20,7 @@
  * Exports
  *	addDist(...)
  *  setDist(...)
+ *  newXPtr(...)
  *
  * to be called as  .Call(.)  in ../R/miscDist.R
  */
@@ -36,9 +37,27 @@
 
 
 /* dist object manipulation */      
-SEXP addDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho);
-SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho);
+SEXP addDist(SEXP d, SEXP x, SEXP k);
+SEXP setDist(SEXP d, SEXP x, SEXP k);
 
+SEXP newXPtr(SEXP n, SEXP k);
+SEXP setXPtr(SEXP XPtr, SEXP x, SEXP k);
+SEXP addXPtr(SEXP XPtr, SEXP x, SEXP k);
+SEXP mulXPtr(SEXP XPtr, SEXP x, SEXP k);
+SEXP XPtrToNumeric(SEXP XPtr);
+
+SEXP applyXPtr(SEXP XPtr, SEXP x, SEXP sub, SEXP f, SEXP rho);
+
+SEXP feval(SEXP x, SEXP f, SEXP rho);
+
+
+static SEXP RRP_dist_tag;
+
+#define CHECK_RRP_OBJECT(s) do { \
+    if (TYPEOF(s) != EXTPTRSXP || \
+        R_ExternalPtrTag(s) !=  RRP_dist_tag) \
+        error("bad RRP dist object"); \
+} while (0)
 
 /* addDist/setDist:
    ------
@@ -49,73 +68,69 @@ SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho);
    d   : the pointer to the vector containing elements of the dist object
    x   : a list of indexes to change in the original matrix
    k   : a vector of constants to add vector-wise
-   n   : the dimension of the dist object
 */
 
 
 
-SEXP addDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho)
+SEXP addDist(SEXP d, SEXP x, SEXP k)
 {
-	int i, j, h, pos;
+	int i, j, h, pos, len, N;
 	double *dObj, *kappa;
-	int dSize, xSize;
-	int *nSize, *xIdx;
-	int n2,n1;
+	int *xIdx, n2, n1;
 	
 	if(!isNumeric(d)) error("`d' must be numeric");
 	if(!isNumeric(k)) error("`k' must be numeric");
-	if(!isInteger(n)) error("`n' must be an integer");
 	
 	PROTECT(d = AS_NUMERIC(d));
 	PROTECT(x = AS_LIST(x));
 	PROTECT(k = AS_NUMERIC(k));
-	PROTECT(n = AS_INTEGER(n));
 	
-	dSize = LENGTH(d); 
-    n2 = length(eval(x, rho));
-    if (n2 == NA_INTEGER)
+	n2 = LENGTH(x);
+	if (n2 == NA_INTEGER)
      error("error");
 	
 	dObj = NUMERIC_POINTER(d);
-	nSize = INTEGER_POINTER(n);
+
+
+	xIdx = INTEGER_POINTER(x);
 	kappa = NUMERIC_POINTER(k);
+	len =  LENGTH(d);		  
+    N = (int)(0.5*(1+sqrt(1+8*len)));
 
 	for(h=0; h<n2; h++){
      n1 = LENGTH(VECTOR_ELT(x,h));
 	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
 	 for(i=0; i<n1-1; i++){
 	  for(j=i+1; j<n1; j++){
-	   pos = (xIdx[i]-1)*(2*(*nSize)-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
 	   REAL(d)[pos-1] = dObj[pos-1] + kappa[h];
 	  }
 	 }
 	}
-	UNPROTECT(4);
+	UNPROTECT(3);
     return(d);
 }
 
-SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho)
+SEXP setDist(SEXP d, SEXP x, SEXP k)
 {
-	int h, i, j, pos;
+	int h, i, j, pos, len, N;
 	double  *kappa;
-	int dSize, xSize;
-	int *nSize, *xIdx, n2, n1;
+	int  *xIdx, n2, n1;
 	
 	if(!isNumeric(d)) error("`d' must be numeric");
 	if(!isNumeric(k)) error("`k' must be numeric");
-	if(!isInteger(n)) error("`n' must be an integer");
 	
 	PROTECT(d = AS_NUMERIC(d));
 	PROTECT(x = AS_LIST(x));
 	PROTECT(k = AS_NUMERIC(k));
-	PROTECT(n = AS_INTEGER(n));
 	
-	dSize = LENGTH(d); 
-    n2 = length(eval(x, rho));
-    if (n2 == NA_INTEGER)
-
+	n2 = LENGTH(x);
+	if (n2 == NA_INTEGER)
+		error("error");
+	
 	xIdx = INTEGER_POINTER(x);
-	nSize = INTEGER_POINTER(n);
+	len =  LENGTH(d);		  
+    N = (int)(0.5*(1+sqrt(1+8*len)));
 	kappa = NUMERIC_POINTER(k);
 			  
 	for(h=0; h<n2; h++){
@@ -123,27 +138,333 @@ SEXP setDist(SEXP d, SEXP x, SEXP k, SEXP n, SEXP rho)
 	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
 	 for(i=0; i<n1-1; i++){
 	  for(j=i+1; j<n1; j++){
-	   pos = (xIdx[i]-1)*(2*(*nSize)-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
 	   REAL(d)[pos-1] = kappa[h];
 	  }
 	 }
 	}
 
-	UNPROTECT(4);
+	UNPROTECT(3);
 	return(d);
 }
 
+/* 
+   DocInfo for the following functions: 
+    newXPtr, addXPtr, mulXPtr, setXPtr, XPtrToNumeric
+   R interfaces have the names but XPtrToNumeric which is called 
+   by XPtrToDist	
+	
+   Preamble: XPtr are external pointer to dist objects. Not really objects of
+   class 'dist' in the R sense, but something you should think about as.
+   XPtr should be tought as the lower triangular part of a symmetrix matrix, 
+   say M. The diagonal is not included and the user must assume it to be 
+   identically zero. The equivalent for a true dist object 'd' obtained
+   from a symmetric matrix 'M' would be  
+
+   > M <- matrix(0, 10, 10)
+   > d <- as.dist(M) 
+   > str(d)
+   Class 'dist'  atomic [1:45] 0 0 0 0 0 0 0 0 0 0 ...
+     ..- attr(*, "Size")= int 10
+     ..- attr(*, "call")= language as.dist.default(m = M)
+     ..- attr(*, "Diag")= logi FALSE
+     ..- attr(*, "Upper")= logi FALSE
+	
+   All the functions access the XPtr as if it was a matrix (see example below)
+
+   parameters:
+   -----------
+   n    : the length of the numeric vector to be created as external pointer
+   XPtr : an already existing XPtr, i.e. external pointer with tag RRP_dist_tag
+   x   : a list of vectors of indexes to change in the original matrix
+   k   : a numeric vector of constants to add vector-wise
+   the length of k and x must match. It is up to the R code to fix this.
+   
+   value: an XPtr
+
+   newXPtr(n, k)       : creates a new XPtr object of Size n, initializes it 
+                         with constant k
+   addXPtr(XPtr, x, k) : adds a vector fo constants
+   mulXPtr(XPtr, x, k) : multiply by a vector fo constants
+   setXPtr(XPtr, x, k) : puts contants in a XPtr object				   
+   XPtrToNumeric(XPtr) : return a SEXP containg a numeric vector. This not 
+                         copied
+example:
+   Consider the above matrix M. This can be initialized by the newXPtr as 
+   follows
+   a <- newXPtr(10, 0)
+
+   if we now set 
+   > x <- list(c(1,7,4), 2:3) 
+   > k <- c(1,-1)
+   
+   and we call 
+   
+   > addXPtr(a, x, k)
+
+   this is equivalent to
+   > M[ c(1,7,4), c(1,7,4) ] <- M[ c(1,7,4), c(1,7,4) ] + 1
+   > M[ 2:3, 2:3 ] <- M[ 2:3, 2:3 ] + (-1)
+   
+   then "as.dist(M)" and "(XPtrToDist(a))" will return the same output (of 
+   course the diagonal of M has been changed and this could not be recovered
+   in a dist object without diagonal. It will be up to the user to fix things)
+*/
+
+SEXP newXPtr(SEXP n, SEXP k){
+	int i, N, *np;
+	SEXP distC, distR, dim;
+    double K,*kp;
+		
+	if(!isNumeric(k)) error("`k' must be numeric");
+	if(!isInteger(n)) error("`n' must be an integer");
+	
+	np = INTEGER_POINTER(n);
+	kp = NUMERIC_POINTER(k);
+    N = *np;
+	K = *kp;
+
+	PROTECT(distC = allocVector(REALSXP, N*(N-1)/2)); 
+	for(i=0; i<N*(N-1)/2; i++)
+	 REAL(distC)[i] = K;
+
+	distR = R_MakeExternalPtr(REAL(distC), RRP_dist_tag,  distC);
+    UNPROTECT(1);
+	return(distR);
+}
+
+
+SEXP setXPtr(SEXP XPtr, SEXP x, SEXP k)
+{
+	int h, i, j, pos;
+	double  *kappa, *d;
+	int  len, N;
+	int  *xIdx, n2, n1;
+		
+	CHECK_RRP_OBJECT(XPtr); 
+    d = R_ExternalPtrAddr(XPtr);
+
+	if(!isNumeric(k)) error("`k' must be numeric");
+
+	PROTECT(x = AS_LIST(x));
+	PROTECT(k = AS_NUMERIC(k));
+	
+	n2 = LENGTH(x); 
+    if (n2 == NA_INTEGER)
+     error("`x' is zero-length");
+	 
+	xIdx = INTEGER_POINTER(x);
+	kappa = NUMERIC_POINTER(k);
+	len =  LENGTH(R_ExternalPtrProtected(XPtr));		  
+    N = (int)(0.5*(1+sqrt(1+8*len)));
+
+	for(h=0; h<n2; h++){
+     n1 = LENGTH(VECTOR_ELT(x,h));
+	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
+	 for(i=0; i<n1-1; i++){
+	  for(j=i+1; j<n1; j++){
+	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   d[pos-1] = kappa[h];
+	  }
+	 }
+	}
+
+	UNPROTECT(2);
+	return(XPtr);
+}
+
+
+
+SEXP addXPtr(SEXP XPtr, SEXP x, SEXP k)
+{
+	int i, j, h, pos;
+	double *kappa, *d;
+	int  *xIdx, n2, n1;
+	int  len, N;
+
+	CHECK_RRP_OBJECT(XPtr); 
+
+    d = R_ExternalPtrAddr(XPtr);
+	if(!isNumeric(k)) error("`k' must be numeric");
+	
+	PROTECT(x = AS_LIST(x));
+	PROTECT(k = AS_NUMERIC(k));
+	
+	n2 = LENGTH(x); 
+    if (n2 == NA_INTEGER)
+     error("`x' is zero-length");
+	 	
+    xIdx = INTEGER_POINTER(x);
+	kappa = NUMERIC_POINTER(k);
+	len =  LENGTH(R_ExternalPtrProtected(XPtr));		  
+    N = (int)(0.5*(1+sqrt(1+8*len)));
+
+	for(h=0; h<n2; h++){
+     n1 = LENGTH(VECTOR_ELT(x,h));
+	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
+	 for(i=0; i<n1-1; i++){
+	  for(j=i+1; j<n1; j++){
+	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   d[pos-1] = d[pos-1] + kappa[h];
+	  }
+	 }
+	}
+	UNPROTECT(2);
+    return(XPtr);
+}
+
+SEXP mulXPtr(SEXP XPtr, SEXP x, SEXP k)
+{
+	int i, j, h, pos;
+	double *kappa, *d;
+	int  *xIdx, n2, n1;
+	int  len, N;
+
+	CHECK_RRP_OBJECT(XPtr); 
+
+    d = R_ExternalPtrAddr(XPtr);
+	if(!isNumeric(k)) error("`k' must be numeric");
+	
+	PROTECT(x = AS_LIST(x));
+	PROTECT(k = AS_NUMERIC(k));
+	
+	n2 = LENGTH(x); 
+    if (n2 == NA_INTEGER)
+     error("`x' is zero-length");
+	 	
+    xIdx = INTEGER_POINTER(x);
+	kappa = NUMERIC_POINTER(k);
+	len =  LENGTH(R_ExternalPtrProtected(XPtr));		  
+    N = (int)(0.5*(1+sqrt(1+8*len)));
+
+	for(h=0; h<n2; h++){
+     n1 = LENGTH(VECTOR_ELT(x,h));
+	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
+	 for(i=0; i<n1-1; i++){
+	  for(j=i+1; j<n1; j++){
+	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   d[pos-1] = d[pos-1] * kappa[h];
+	  }
+	 }
+	}
+	UNPROTECT(2);
+    return(XPtr);
+}
+
+
+/* 
+   DocInfo for the following functions: 
+   applyXPtr
+   the R counterpart has the same name 
+   applies function 'f' to the elements M[i, sub] where M is the symmetric
+   matrix imagined to be associated with XPtr with 0's on the diagonal and
+   'i' varies in 'idx' (a vector of indexes).	   
+*/
+
+SEXP applyXPtr(SEXP XPtr, SEXP idx, SEXP sub, SEXP f, SEXP rho)
+{
+	int i, j, h, pos;
+	double *d, tmpval;
+	int  IDX, SUB, nidx, nsub, n2, n1;
+	int  len, N, np=0;
+    SEXP  val, tmp, subval;
+	
+	CHECK_RRP_OBJECT(XPtr); 
+
+    d = R_ExternalPtrAddr(XPtr);
+	if(!isInteger(idx)) error("`idx' must be integer");
+	if(!isInteger(sub)) error("`sub' must be integer");
+	
+	PROTECT(idx = AS_INTEGER(idx));
+	np++;
+	PROTECT(sub = AS_INTEGER(sub));
+	np++;
+	
+	nidx = LENGTH(idx); 
+    if (nidx == NA_INTEGER)
+     error("`idx' is zero-length");
+
+	nsub = LENGTH(sub); 
+    if (nsub == NA_INTEGER)
+     error("`sub' is zero-length");
+	 	
+ 
+	len =  LENGTH(R_ExternalPtrProtected(XPtr));		  
+    N = (int)(0.5*(1+sqrt(1+8*len)));
+
+    PROTECT(val = allocVector(VECSXP, nidx));
+    np++;
+	for(i=0; i<nidx; i++){	 
+	 IDX = INTEGER(idx)[i];
+	 PROTECT(subval = NEW_NUMERIC(nsub));
+	 np++;
+	 for(j = 0; j<nsub; j++){
+	  tmpval = 0.0;
+	  SUB = INTEGER(sub)[j];
+	  if(IDX<SUB){
+		pos = (IDX-1)*(2*N-IDX)/2 + SUB-IDX;
+	    tmpval = d[pos-1];
+	   }
+	   if(IDX>SUB){
+		pos = (SUB-1)*(2*N-SUB)/2 + IDX-SUB;
+	    tmpval = d[pos-1];
+	   }
+	  REAL(subval)[j] = tmpval;
+     }	  
+	 PROTECT(tmp =  feval(subval, f,  rho));
+	 np++;
+	 SET_VECTOR_ELT(val, i, tmp);
+	}
+
+	UNPROTECT(np);
+    return(val);
+}
+/* This function does not copy the object, it just returns
+   the SEXP cached inside external pointer XPtr
+*/
+SEXP XPtrToNumeric(SEXP XPtr)
+{
+	SEXP val;
+	CHECK_RRP_OBJECT(XPtr); 
+	PROTECT(val =  R_ExternalPtrProtected(XPtr));
+	UNPROTECT(1);
+	return(val);
+}
+
+
+
+SEXP feval(SEXP x, SEXP f, SEXP rho)
+{
+    SEXP R_fcall, val; 
+	
+	PROTECT(R_fcall = allocList(2));
+	SETCAR(R_fcall, f);
+	SET_TYPEOF(R_fcall, LANGSXP);
+
+	SETCADR(R_fcall, x);
+    val = eval(R_fcall, rho);
+    UNPROTECT(1);		
+    return(val);
+}
 
 static R_CMethodDef R_CDef[] = {
-   {"addDist", (DL_FUNC)&addDist, 5},
-   {"setDist", (DL_FUNC)&setDist, 5},
+   {"addDist", (DL_FUNC)&addDist, 3},
+   {"setDist", (DL_FUNC)&setDist, 3},
+   {"newXptr", (DL_FUNC)&newXPtr, 2},   
+   {"addXPtr", (DL_FUNC)&addXPtr, 3},
+   {"mulXPtr", (DL_FUNC)&mulXPtr, 3},
+   {"setXPtr", (DL_FUNC)&setXPtr, 3},
+   {"applyXPtr", (DL_FUNC)&applyXPtr, 5},
+   {"XPtrToNumeric", (DL_FUNC)&XPtrToNumeric, 1},
    {NULL, NULL, 0},
 };
+
 
 void
 R_init_rrp(DllInfo *info)
 {
     R_registerRoutines(info, R_CDef, NULL, NULL, NULL);
+    RRP_dist_tag = install("RRP_DIST_TAG");
 }
 
 
