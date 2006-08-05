@@ -12,10 +12,10 @@ if( !any(class(x) == "XPtr") )
 
  pred <- as.numeric(rep(NA,length(test)))
 
- f <- function(x) {x[which(x==1)] <- NA; tmp <- order(x); tmp[1:min(k,length(tmp))]}
+ f <- function(x) {x[which(x==1)] <- NA; tmp <- order(x,na.last=NA); tmp[1:min(k,length(tmp))]}
  nn <- applyXPtr(x, test, train, f)
  
- g <- function(x) {x[which(x==1)] <- NA; tmp <- order(x); 
+ g <- function(x) {x[which(x==1)] <- NA; tmp <- order(x,na.last=NA); 
    tmp <- tmp[1:min(k,length(tmp))]; x[tmp]}
  ww <- applyXPtr(x, test, train, g)
  

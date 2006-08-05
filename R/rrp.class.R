@@ -12,7 +12,7 @@ if( !any(class(x) == "XPtr") )
 
  pred <- factor(rep(NA,length(test)), levels=levels(cl))
  
- f <- function(x) {x[which(x==1)] <- NA; tmp <- order(x); tmp[1:min(k,length(tmp))]}
+ f <- function(x) {x[which(x==1)] <- NA; tmp <- order(x,na.last=NA); tmp[1:min(k,length(tmp))]}
  nn <- applyXPtr(x, test, train, f)
  
  for(i in 1:length(test)){
