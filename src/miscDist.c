@@ -48,8 +48,6 @@ SEXP XPtrToNumeric(SEXP XPtr);
 
 SEXP applyXPtr(SEXP XPtr, SEXP x, SEXP sub, SEXP f, SEXP rho);
 
-SEXP feval(SEXP x, SEXP f, SEXP rho);
-
 
 static SEXP RRP_dist_tag;
 
@@ -76,7 +74,7 @@ SEXP addDist(SEXP d, SEXP x, SEXP k)
 {
 	int i, j, h, pos, len, N;
 	double *dObj, *kappa, *myd;
-	int *xIdx, n2, n1;
+	int *xIdx, n2, n1, i1, i2;
 	
 	if(!isNumeric(d)) error("`d' must be numeric");
 	if(!isNumeric(k)) error("`k' must be numeric");
@@ -91,7 +89,6 @@ SEXP addDist(SEXP d, SEXP x, SEXP k)
 	
 	dObj = NUMERIC_POINTER(d);
 
-
 	kappa = NUMERIC_POINTER(k);
 	len =  LENGTH(d);		  
     N = (int)(0.5*(1+sqrt(1+8*len)));
@@ -102,7 +99,13 @@ SEXP addDist(SEXP d, SEXP x, SEXP k)
 	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
 	 for(i=0; i<n1-1; i++){
 	  for(j=i+1; j<n1; j++){
-	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   i1 = xIdx[i];
+	   i2 = xIdx[j];
+	   if(i1 > i2){ 
+	    i2 = xIdx[i];
+	    i1 = xIdx[j];
+	   }
+	   pos = (i1-1)*(2*N-i1)/2 + i2-i1;
 	   myd[pos-1] = dObj[pos-1] + kappa[h];
 	  }
 	 }
@@ -115,7 +118,7 @@ SEXP setDist(SEXP d, SEXP x, SEXP k)
 {
 	int h, i, j, pos, len, N;
 	double  *kappa,  *myd;
-	int  *xIdx, n2, n1;
+	int  *xIdx, n2, n1, i1, i2;
 	
 	if(!isNumeric(d)) error("`d' must be numeric");
 	if(!isNumeric(k)) error("`k' must be numeric");
@@ -139,7 +142,13 @@ SEXP setDist(SEXP d, SEXP x, SEXP k)
 	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
 	 for(i=0; i<n1-1; i++){
 	  for(j=i+1; j<n1; j++){
-	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   i1 = xIdx[i];
+	   i2 = xIdx[j];
+	   if(i1 > i2){ 
+	    i2 = xIdx[i];
+	    i1 = xIdx[j];
+	   }
+	   pos = (i1-1)*(2*N-i1)/2 + i2-i1;
 	   myd[pos-1] = kappa[h];
 	  }
 	 }
@@ -241,7 +250,7 @@ SEXP setXPtr(SEXP XPtr, SEXP x, SEXP k)
 	int h, i, j, pos;
 	double  *kappa, *d;
 	int  len, N;
-	int  *xIdx, n2, n1;
+	int  *xIdx, n2, n1, i1, i2;
 		
 	CHECK_RRP_OBJECT(XPtr); 
     d = R_ExternalPtrAddr(XPtr);
@@ -264,7 +273,13 @@ SEXP setXPtr(SEXP XPtr, SEXP x, SEXP k)
 	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
 	 for(i=0; i<n1-1; i++){
 	  for(j=i+1; j<n1; j++){
-	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   i1 = xIdx[i];
+	   i2 = xIdx[j];
+	   if(i1 > i2){ 
+	    i2 = xIdx[i];
+	    i1 = xIdx[j];
+	   }
+	   pos = (i1-1)*(2*N-i1)/2 + i2-i1;
 	   d[pos-1] = kappa[h];
 	  }
 	 }
@@ -281,7 +296,7 @@ SEXP addXPtr(SEXP XPtr, SEXP x, SEXP k)
 	int i, j, h, pos;
 	double *kappa, *d;
 	int  *xIdx, n2, n1;
-	int  len, N;
+	int  len, N,i1,i2;
 
 	CHECK_RRP_OBJECT(XPtr); 
 
@@ -304,7 +319,13 @@ SEXP addXPtr(SEXP XPtr, SEXP x, SEXP k)
 	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
 	 for(i=0; i<n1-1; i++){
 	  for(j=i+1; j<n1; j++){
-	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   i1 = xIdx[i];
+	   i2 = xIdx[j];
+	   if(i1 > i2){ 
+	    i2 = xIdx[i];
+	    i1 = xIdx[j];
+	   }
+	   pos = (i1-1)*(2*N-i1)/2 + i2-i1;
 	   d[pos-1] = d[pos-1] + kappa[h];
 	  }
 	 }
@@ -318,7 +339,7 @@ SEXP mulXPtr(SEXP XPtr, SEXP x, SEXP k)
 	int i, j, h, pos;
 	double *kappa, *d;
 	int  *xIdx, n2, n1;
-	int  len, N;
+	int  len, N, i1, i2;
 
 	CHECK_RRP_OBJECT(XPtr); 
 
@@ -341,7 +362,13 @@ SEXP mulXPtr(SEXP XPtr, SEXP x, SEXP k)
 	 xIdx = INTEGER_POINTER(AS_INTEGER(VECTOR_ELT(x,h)));
 	 for(i=0; i<n1-1; i++){
 	  for(j=i+1; j<n1; j++){
-	   pos = (xIdx[i]-1)*(2*N-xIdx[i])/2 + xIdx[j]-xIdx[i];
+	   i1 = xIdx[i];
+	   i2 = xIdx[j];
+	   if(i1 > i2){ 
+	    i2 = xIdx[i];
+	    i1 = xIdx[j];
+	   }
+	   pos = (i1-1)*(2*N-i1)/2 + i2-i1;
 	   d[pos-1] = d[pos-1] * kappa[h];
 	  }
 	 }
@@ -369,8 +396,14 @@ SEXP applyXPtr(SEXP XPtr, SEXP idx, SEXP sub, SEXP f, SEXP rho)
     SEXP  val, tmp, subval;
 	int *mysub, *myidx;
 	double *mysubval;
+	SEXP R_fcall; 
 	
 	CHECK_RRP_OBJECT(XPtr); 
+
+	PROTECT(R_fcall = allocList(2));
+	np++;
+	SETCAR(R_fcall, f);
+	SET_TYPEOF(R_fcall, LANGSXP);
 
     d = R_ExternalPtrAddr(XPtr);
 	if(!isInteger(idx)) error("`idx' must be integer");
@@ -391,7 +424,6 @@ SEXP applyXPtr(SEXP XPtr, SEXP idx, SEXP sub, SEXP f, SEXP rho)
     if (nsub == NA_INTEGER)
      error("`sub' is zero-length");
 	 	
- 
 	len =  LENGTH(R_ExternalPtrProtected(XPtr));		  
     N = (int)(0.5*(1+sqrt(1+8*len)));
 
@@ -415,9 +447,8 @@ SEXP applyXPtr(SEXP XPtr, SEXP idx, SEXP sub, SEXP f, SEXP rho)
 	   }
 	  mysubval[j] = tmpval;
      }	  
-	 PROTECT(tmp =  feval(subval, f,  rho));
-	 np++;
-	 SET_VECTOR_ELT(val, i, tmp);
+ 	 SETCADR(R_fcall, subval);
+	 SET_VECTOR_ELT(val, i, eval(R_fcall, rho) );
 	}
 
 	UNPROTECT(np);
@@ -436,25 +467,10 @@ SEXP XPtrToNumeric(SEXP XPtr)
 }
 
 
-
-SEXP feval(SEXP x, SEXP f, SEXP rho)
-{
-    SEXP R_fcall, val; 
-	
-	PROTECT(R_fcall = allocList(2));
-	SETCAR(R_fcall, f);
-	SET_TYPEOF(R_fcall, LANGSXP);
-
-	SETCADR(R_fcall, x);
-    val = eval(R_fcall, rho);
-    UNPROTECT(1);		
-    return(val);
-}
-
 static R_CMethodDef R_CDef[] = {
    {"addDist", (DL_FUNC)&addDist, 3},
    {"setDist", (DL_FUNC)&setDist, 3},
-   {"newXptr", (DL_FUNC)&newXPtr, 2},   
+   {"newXPtr", (DL_FUNC)&newXPtr, 2},   
    {"addXPtr", (DL_FUNC)&addXPtr, 3},
    {"mulXPtr", (DL_FUNC)&mulXPtr, 3},
    {"setXPtr", (DL_FUNC)&setXPtr, 3},

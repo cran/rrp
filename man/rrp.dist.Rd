@@ -7,7 +7,7 @@ matrix.
 }
 \usage{
 rrp.dist(X, treated = NULL, msplit = 10, Rep = 250, cut.in = 15, 
- check.bal = FALSE, plot = FALSE, asdist=FALSE)
+ check.bal = FALSE, plot = FALSE, asdist = FALSE, verbose = 0)
 }
 \arguments{
   \item{X}{a \code{data.frame} object}
@@ -19,11 +19,12 @@ rrp.dist(X, treated = NULL, msplit = 10, Rep = 250, cut.in = 15,
   hyper-rectangles will be used inside leaves}
   \item{plot}{wheter to plot the porximity matrix as image}
   \item{asdist}{if \code{TRUE} returns an object of class \code{dist}}
+  \item{verbose}{if greater than 1 some information is printed}
 }
 \details{
 This algorithm allows for missing data in \code{X}. From version 1.6 of the
 package the RRP matrix is stored as an external pointer to avoid duplications.
-This allow to work on bigger datasets.
+This allow to work on bigger datasets. 
 }
 \value{an object of class \code{externalptr, XPtr} or \code{dist}
 }

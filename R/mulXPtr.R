@@ -11,7 +11,7 @@ if(any(unlist(x)>attr(d,"Size")))
 
  n <- length(x)
  k <- rep(k,n)[1:n]
- x <- lapply(x, sort)
+# x <- lapply(x, sort)
 
  return(invisible(.Call("mulXPtr", d, x, as.numeric(k), PACKAGE="rrp")))
 }
