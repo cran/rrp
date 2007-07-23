@@ -1,30 +1,8 @@
 
-RRP.rpart.setup <- function (formula,
-data, weights, subset, na.action = na.rpart, 
-    method, model = FALSE, x = FALSE, y = TRUE, parms, control, 
-    cost, ...) 
-{
-    call <- match.call()
-    if (is.data.frame(model)) {
-        m <- model
-        model <- FALSE
-    }
-    else {
-        m <- match.call(expand = FALSE)
-        m$model <- m$method <- m$control <- NULL
-        m$x <- m$y <- m$parms <- m$... <- NULL
-        m$cost <- NULL
-        m$na.action <- na.action
-        m[[1]] <- as.name("model.frame")
-        m <- eval(m, parent.frame())
-    }
-    RRPX <<- RRP.rpart.matrix(m)
-	m
-}	
 	
 RRP.rpart <- function (formula,  data, weights, subset, na.action = na.rpart, 
     method, model = FALSE, x = FALSE, y = TRUE, parms, control, 
-    cost, m=NULL, RRPY=NULL, ...) 
+    cost, m=NULL, RRPY=NULL, RRPX=NULL, ...) 
 {
     call <- match.call()
 
@@ -151,6 +129,30 @@ rrp.dist <- function (X, treated = NULL, msplit = 10, Rep = 250, cut.in = 15,
 	RRPX <- NULL
     if(verbose>0)
 	 cat("RRP running now\n")
+
+
+	RRP.rpart.setup <- function (formula,
+		data, weights, subset, na.action = na.rpart, 
+		method, model = FALSE, x = FALSE, y = TRUE, parms, control, 
+		cost, ...) 
+	{
+		call <- match.call()
+		if (is.data.frame(model)) {
+			m <- model
+			model <- FALSE
+		} else {
+			m <- match.call(expand = FALSE)
+			m$model <- m$method <- m$control <- NULL
+			m$x <- m$y <- m$parms <- m$... <- NULL
+			m$cost <- NULL
+			m$na.action <- na.action
+			m[[1]] <- as.name("model.frame")
+			m <- eval(m, parent.frame())
+		}
+		RRPX <<- RRP.rpart.matrix(m)
+		m
+	}	
+
 	mRRP <- RRP.rpart.setup(z ~ ., data = x, method = "anova", minsplit = msplit, 
             xval = 0, cp = 0, maxcompete=0, maxsurrogate=0)
 
@@ -163,7 +165,7 @@ rrp.dist <- function (X, treated = NULL, msplit = 10, Rep = 250, cut.in = 15,
                 20, 17), cex = 1)
         }
         mod <- RRP.rpart(z ~ ., data = x, method = "anova", minsplit = msplit, 
-            xval = 0, cp = 0, m=mRRP, RRPY=runif(n))
+            xval = 0, cp = 0, m=mRRP, RRPY=runif(n), RRPX=RRPX)
 		group <- sapply(unique(mod), function(x) which(mod == x))
 
         n.leaves <- length(group)
