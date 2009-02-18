@@ -297,19 +297,43 @@ RRP.rpart.matrix <- function(frame)
 
 
 # The following code is not exported by rpart but we need it
+# SCCS  @(#)formatg.s	1.3 06/06/01
+# format a set of numbers using C's "g" format
+#  It is applied on an element by element basis, which is more
+#  appropriate for rpart output than the standard Splus format()
+#  command.
+# For instance if x=(123, 1.23, .00123)
+#	  format(x) = "123.00000", "1.23000", "0.00123"
+#  but formatg does not add all of those zeros to the first two numbers
+#
+
+RRP.formatg <- function (x, digits = unlist(options("digits")), 
+    format = paste("%.", digits, "g", sep = "")) 
+{
+    if (!is.numeric(x)) 
+        stop("x must be a numeric vector")
+    n <- length(x)
+    temp <- sprintf(format, x)
+    if (is.matrix(x)) 
+        matrix(temp, nrow = nrow(x))
+    else temp
+}
+
+# The following code is not exported by rpart but we need it
 # Original copyright follows for the rpart:::rpart.anova
 #SCCS @(#)rpart.anova.s	1.4 05/02/01
+
 RRP.rpart.anova <- function(y, offset, parms, wt) {
     if (!is.null(offset)) y <- y-offset
     list(y=y, parms=0, numresp=1, numy=1,
 	 summary= function(yval, dev, wt, ylevel, digits ) {
-	     paste("  mean=", formatg(yval, digits),
-		   ", MSE=" , formatg(dev/wt, digits),
+	     paste("  mean=", RRP.formatg(yval, digits),
+		   ", MSE=" , RRP.formatg(dev/wt, digits),
 		   sep='')
 	     },
 	 text= function(yval, dev, wt, ylevel, digits, n, use.n ) {
-	     if(use.n) {paste(formatg(yval,digits),"\nn=", n,sep="")} else
-	               {paste(formatg(yval,digits))}}
+	     if(use.n) {paste(RRP.formatg(yval,digits),"\nn=", n,sep="")} else
+	               {paste(RRP.formatg(yval,digits))}}
 
 	 )
     }

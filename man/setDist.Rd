@@ -3,7 +3,7 @@
 \title{Sets the elements of a dist object to a constant vector-wise}
 \description{
 Sets the elements of a dist object to a constant vector-wise. The idea is that 
-a symmetrix matrix \code{M} can be represented as a triangular object {d}. 
+a symmetrix matrix \code{M} can be represented as a triangular object \code{d}. 
 With this function you set \code{M[x,x] = k} but instead of working on 
 \code{M} this function works on its \code{dist} representation \code{d}.
 }

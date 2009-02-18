@@ -29,8 +29,13 @@ This allow to work on bigger datasets.
 \value{an object of class \code{externalptr, XPtr} or \code{dist}
 }
 \references{
-Iacus, S.M., Porro, G. (2006) Random recursive partitioning: a 
-matching method for the estimation of the average treatment effect
+Iacus, S.M., Porro, G. (2009) Random Recursive Partitioning: a matching 
+method for the estimation of the average treatment effect, 
+\emph{Journal of Applied Econometrics}, 24, 163-185. 
+
+Iacus, S.M., Porro, G. (2007) Missing data imputation, matching and other 
+applications of random recursive partitioning, 
+\emph{Computational Statistics and Data Analysis}, 52, 2, 773-789.
 }
 \author{S.M. Iacus}
 \seealso{\code{\link{rpart}}}

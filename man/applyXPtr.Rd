@@ -24,9 +24,15 @@ applied this way on the matrix \code{M}: \code{apply(M[idx,sub],1,f)}.
 \value{
   \item{val}{an invisible object of type \code{list}}
 }
-\references{Iacus, S.M., Porro, G. (2006) Random Recursive Partitioning and 
-its applications to missing data imputation, classification and 
-average treatment effect estimation, \emph{submitted}.}
+\references{
+Iacus, S.M., Porro, G. (2009) Random Recursive Partitioning: a matching 
+method for the estimation of the average treatment effect, 
+\emph{Journal of Applied Econometrics}, 24, 163-185. 
+
+Iacus, S.M., Porro, G. (2007) Missing data imputation, matching and other 
+applications of random recursive partitioning, 
+\emph{Computational Statistics and Data Analysis}, 52, 2, 773-789.
+}
 \author{S.M. Iacus}
 \seealso{\code{\link{newXPtr}}}
 \examples{

@@ -27,5 +27,4 @@ Smith, J., Todd, P. (2005a) Does Matching Overcome
 Lalonde's Critique of Nonexperimental Estimators?, \emph{Journal of 
 Econometrics}, 125(1-2), 305-353.
 }
-}
 \keyword{datasets}

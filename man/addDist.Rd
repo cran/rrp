@@ -3,8 +3,8 @@
 \title{Adds constant to the elements of a dist object vector-wise}
 \description{
 Adds constant to the elements of a dist object vector-wise. The idea is that a 
-symmetrix matrix \code{M} can be represented as a triangular object {d}. With 
-this function you set \code{M[x,x] = M[x,x] + k} but instead of working on 
+symmetrix matrix \code{M} can be represented as a triangular object \code{d}. 
+With this function you set \code{M[x,x] = M[x,x] + k} but instead of working on 
 \code{M} this function works on its \code{dist} representation \code{d}.
 }
 \usage{
